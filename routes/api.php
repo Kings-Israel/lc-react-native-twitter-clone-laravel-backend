@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Tweet;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,7 +29,6 @@ Route::get('/tweets/{tweet}', function (Tweet $tweet) {
 });
 
 Route::post('/tweets', function (Request $request) {
-    sleep(2);
     $request->validate([
         'body' => 'required'
     ]);
@@ -36,5 +36,11 @@ Route::post('/tweets', function (Request $request) {
     return Tweet::create([
         'user_id' => rand(1, 20),
         'body' => $request->body
+    ]);
+});
+
+Route::get('users/{user}', function (User $user) {
+    return $user->only([
+        'id', 'name', 'username', 'profile', 'location', 'link', 'linkText', 'avatar', 'created_at'
     ]);
 });
