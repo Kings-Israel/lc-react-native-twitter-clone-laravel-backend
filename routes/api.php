@@ -34,7 +34,7 @@ Route::post('/tweets', function (Request $request) {
     ]);
 
     return Tweet::create([
-        'user_id' => rand(1, 20),
+        'user_id' => 2,
         'body' => $request->body
     ]);
 });
@@ -43,4 +43,8 @@ Route::get('users/{user}', function (User $user) {
     return $user->only([
         'id', 'name', 'username', 'profile', 'location', 'link', 'linkText', 'avatar', 'created_at'
     ]);
+});
+
+Route::get('/user/{user}/tweets', function (User $user) {
+    return $user->tweets()->with('user:id,name,username,avatar')->latest()->paginate(10);
 });
