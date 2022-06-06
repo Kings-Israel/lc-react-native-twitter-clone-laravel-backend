@@ -12,16 +12,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -50,5 +41,15 @@ class User extends Authenticatable
     public function tweets()
     {
         return $this->hasMany(Tweet::class);
+    }
+
+    /**
+     * The follows that belong to the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function follows()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'user_id', 'user_following_id');
     }
 }

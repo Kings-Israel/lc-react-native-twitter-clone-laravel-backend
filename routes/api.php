@@ -22,21 +22,29 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/tweets', function() {
+Route::get('/tweets_all', function() {
     return Tweet::with('user:id,name,username,avatar')->latest()->paginate(10);
+});
+
+Route::middleware('auth:sanctum')->get('/tweets', function() {
+    $followers = auth()->user()->follows->pluck('id');
+    return Tweet::with('user:id,name,username,avatar')
+        ->whereIn('user_id', $followers)
+        ->latest()
+        ->paginate(10);
 });
 
 Route::get('/tweets/{tweet}', function (Tweet $tweet) {
     return $tweet->load('user:id,name,username,avatar');
 });
 
-Route::post('/tweets', function (Request $request) {
+Route::middleware('auth:sanctum')->post('/tweets', function (Request $request) {
     $request->validate([
         'body' => 'required'
     ]);
 
     return Tweet::create([
-        'user_id' => 2,
+        'user_id' => auth()->id(),
         'body' => $request->body
     ]);
 });
@@ -79,4 +87,24 @@ Route::middleware('auth:sanctum')->post('/logout', function(Request $request) {
     $request->user()->currentAccessToken()->delete();
 
     return response()->json('Logged out', 200);
+});
+
+Route::post('/register', function (Request $request) {
+    $request->validate([
+        'name' => 'required',
+        'username' => 'required',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|confirmed',
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'username' => $request->username,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+    ]);
+
+    return response()->json([
+        'user' => $user->only('id', 'name', 'email', 'username', 'avatar')
+    ], 201);
 });
