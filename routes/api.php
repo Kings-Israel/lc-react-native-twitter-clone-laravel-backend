@@ -49,6 +49,12 @@ Route::middleware('auth:sanctum')->post('/tweets', function (Request $request) {
     ]);
 });
 
+Route::middleware('auth:sanctum')->delete('/tweets/{tweet}', function (Tweet $tweet) {
+    abort_if(auth()->id() != $tweet->user->id, 403);
+
+    return response()->json($tweet->delete(), 201);
+});
+
 Route::get('users/{user}', function (User $user) {
     return $user->only([
         'id', 'name', 'username', 'profile', 'location', 'link', 'linkText', 'avatar', 'created_at'
@@ -104,7 +110,26 @@ Route::post('/register', function (Request $request) {
         'password' => Hash::make($request->password),
     ]);
 
+    $user->follows()->attach($user);
+
     return response()->json([
         'user' => $user->only('id', 'name', 'email', 'username', 'avatar')
     ], 201);
+});
+
+Route::middleware('auth:sanctum')->post('/follow/{user}', function(User $user) {
+    auth()->user()->follow($user);
+
+    return response()->json('Followed', 201);
+});
+
+Route::middleware('auth:sanctum')->post('/unfollow/{user}', function(User $user) {
+    info($user);
+    auth()->user()->unfollow($user);
+
+    return response()->json('Unfollowed', 201);
+});
+
+Route::middleware('auth:sanctum')->get('/is_following/{user}', function(User $user) {
+    return response()->json(auth()->user()->isFollowing($user), 200);
 });
